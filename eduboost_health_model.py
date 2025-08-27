@@ -222,44 +222,141 @@ class EduBoostHealthModel:
         
         return bounded_predictions
     
-    def _generate_personalized_plans(self, stress_level: int, predictions: Dict[str, float]) -> Dict[str, str]:
+    def _generate_personalized_plans(self, mood: str, stress_level: int, procrastination_level: int, 
+                                    sleep_hours: float, predictions: Dict[str, float]) -> Dict[str, str]:
         """
-        Generate personalized text plans based on stress level and predictions.
+        Generate comprehensive personalized text plans based on inputs and predictions.
         
         Args:
+            mood (str): Student's mood
             stress_level (int): Student's stress level (1-5)
+            procrastination_level (int): Student's procrastination level (1-5)
+            sleep_hours (float): Student's current sleep hours
             predictions (dict): Model predictions
             
         Returns:
-            dict: Personalized plans for study, physical, and emotional wellness
+            dict: Comprehensive plans for study, physical, and emotional wellness
         """
         study_hours = predictions['study_hours']
         exercise_minutes = predictions['exercise_minutes']
+        sleep_target = predictions['sleep_hours']
+        water_target = predictions['water_liters']
         meditation_minutes = predictions['meditation_minutes']
+        screen_limit = predictions['screen_limit']
         
-        # Study plan based on stress level and predicted hours
-        if stress_level >= 4:  # High stress
-            study_plan = f"High-stress study plan: Break your {study_hours:.1f} hours into 25-minute focused sessions with 5-minute breaks (Pomodoro technique). Prioritize difficult subjects when energy is highest (morning). Use active recall and spaced repetition techniques."
-        elif stress_level >= 3:  # Moderate stress
-            study_plan = f"Balanced study plan: Organize your {study_hours:.1f} hours into 45-minute blocks with 15-minute breaks. Mix challenging and easier subjects. Include review sessions and practice tests."
-        else:  # Low stress
-            study_plan = f"Relaxed study plan: Enjoy {study_hours:.1f} hours of steady learning with 60-90 minute sessions and 20-minute breaks. Focus on deep understanding and explore topics that interest you."
+        # Weekly Study Plan based on stress, procrastination, and predicted hours
+        if stress_level >= 4 and procrastination_level >= 4:
+            # High stress + High procrastination
+            study_plan = (f"**Weekly Study Plan - Intensive Focus Strategy**\n"
+                         f"Recommended Study Hours: {study_hours:.0f} hours/week\n"
+                         f"• Use Pomodoro Technique: 25-min study, 5-min break cycles\n"
+                         f"• Schedule 3-4 study sessions daily (morning preferred)\n"
+                         f"• Break large tasks into 15-minute mini-sessions\n"
+                         f"• Use accountability partner or study group\n"
+                         f"• Reward completion of each session\n"
+                         f"• Focus on one subject per session to avoid overwhelm")
+        elif stress_level >= 3 or procrastination_level >= 3:
+            # Moderate stress or procrastination
+            study_plan = (f"**Weekly Study Plan - Balanced Approach**\n"
+                         f"Recommended Study Hours: {study_hours:.0f} hours/week\n"
+                         f"• Organize study time into 45-60 minute blocks\n"
+                         f"• Take 15-minute breaks between sessions\n"
+                         f"• Mix challenging and easier subjects daily\n"
+                         f"• Schedule review sessions twice weekly\n"
+                         f"• Use active learning techniques (flashcards, practice tests)\n"
+                         f"• Plan study schedule at beginning of each week")
+        else:
+            # Low stress + Low procrastination
+            study_plan = (f"**Weekly Study Plan - Deep Learning Focus**\n"
+                         f"Recommended Study Hours: {study_hours:.0f} hours/week\n"
+                         f"• Enjoy 90-120 minute deep learning sessions\n"
+                         f"• Take 20-30 minute breaks for reflection\n"
+                         f"• Explore topics that genuinely interest you\n"
+                         f"• Focus on understanding concepts deeply\n"
+                         f"• Engage in research and creative projects\n"
+                         f"• Allow flexible scheduling based on energy levels")
         
-        # Physical plan based on stress level and predicted exercise
-        if stress_level >= 4:  # High stress
-            physical_plan = f"Intensive stress-relief workout: {exercise_minutes:.0f} minutes of high-intensity activities like running, boxing, or HIIT to release tension. Include 10 minutes of stretching afterward."
-        elif stress_level >= 3:  # Moderate stress
-            physical_plan = f"Balanced fitness routine: {exercise_minutes:.0f} minutes combining cardio (20 min) and strength training (20 min) with yoga or stretching (remaining time). Focus on activities you enjoy."
-        else:  # Low stress
-            physical_plan = f"Gentle movement: {exercise_minutes:.0f} minutes of light activities like walking, swimming, or gentle yoga. Listen to music or podcasts to make it enjoyable and relaxing."
+        # Physical Plan based on stress level and mood
+        if stress_level >= 4:
+            # High stress - need intensive physical activity
+            if mood == 'Stressed':
+                physical_plan = (f"**Physical Plan - Stress Relief Focus**\n"
+                               f"• High-intensity workout {exercise_minutes:.0f} mins daily (running, HIIT, boxing)\n"
+                               f"• Minimum {sleep_target:.1f} hours sleep nightly\n"
+                               f"• Drink {water_target:.1f}L water daily (track with app)\n"
+                               f"• 10 minutes stretching after intense workouts\n"
+                               f"• Cold shower or breathing exercises post-workout\n"
+                               f"• Schedule workouts when stress peaks (often evenings)")
+            else:
+                physical_plan = (f"**Physical Plan - Energy Release**\n"
+                               f"• Vigorous cardio {exercise_minutes:.0f} mins daily (cycling, swimming, dancing)\n"
+                               f"• Target {sleep_target:.1f} hours quality sleep\n"
+                               f"• Hydrate with {water_target:.1f}L water throughout day\n"
+                               f"• Include strength training 3x per week\n"
+                               f"• Practice yoga or tai chi for balance\n"
+                               f"• Weekend outdoor activities (hiking, sports)")
+        elif stress_level >= 2:
+            # Moderate stress
+            physical_plan = (f"**Physical Plan - Balanced Fitness**\n"
+                           f"• Moderate exercise {exercise_minutes:.0f} mins daily (brisk walk, gym, sports)\n"
+                           f"• Consistent {sleep_target:.1f} hours sleep schedule\n"
+                           f"• Maintain {water_target:.1f}L daily water intake\n"
+                           f"• Mix cardio (20 min) and strength training (20 min)\n"
+                           f"• Add flexibility work (yoga, stretching) 3x weekly\n"
+                           f"• Choose activities you genuinely enjoy")
+        else:
+            # Low stress
+            physical_plan = (f"**Physical Plan - Gentle Wellness**\n"
+                           f"• Light movement {exercise_minutes:.0f} mins daily (walking, gentle yoga, swimming)\n"
+                           f"• Relaxed {sleep_target:.1f} hours sleep routine\n"
+                           f"• Gentle hydration with {water_target:.1f}L water daily\n"
+                           f"• Focus on activities that bring joy\n"
+                           f"• Nature walks or outdoor meditation\n"
+                           f"• Listen to music or podcasts during exercise")
         
-        # Emotional plan based on stress level and meditation time
-        if stress_level >= 4:  # High stress
-            emotional_plan = f"Stress management focus: {meditation_minutes:.0f} minutes of guided meditation or deep breathing exercises. Consider journaling for 10 minutes to process emotions. Practice progressive muscle relaxation."
-        elif stress_level >= 3:  # Moderate stress
-            emotional_plan = f"Emotional balance: {meditation_minutes:.0f} minutes of mindfulness meditation or gratitude practice. Connect with friends or family. Engage in a hobby you enjoy for 20-30 minutes."
-        else:  # Low stress
-            emotional_plan = f"Wellness maintenance: {meditation_minutes:.0f} minutes of light meditation or mindful breathing. Take time to appreciate positive moments. Consider creative activities or nature walks."
+        # Emotional Plan based on mood, stress, and sleep quality
+        sleep_quality = "good" if sleep_hours >= 7 else "needs improvement"
+        
+        if mood == 'Sad' or stress_level >= 4:
+            # Need emotional support
+            emotional_plan = (f"**Emotional Plan - Mental Health Priority**\n"
+                            f"• Practice mindfulness meditation {meditation_minutes:.0f} mins daily\n"
+                            f"• Limit screen time {screen_limit:.1f} hours before sleep\n"
+                            f"• Schedule weekly mental health check-ins with counselor\n"
+                            f"• Journal thoughts and feelings daily (10-15 mins)\n"
+                            f"• Connect with supportive friends/family 3x weekly\n"
+                            f"• Practice gratitude exercises before bed\n"
+                            f"• Consider professional support if feelings persist")
+        elif mood == 'Stressed':
+            # Stress management focus
+            emotional_plan = (f"**Emotional Plan - Stress Management**\n"
+                            f"• Guided meditation or breathing exercises {meditation_minutes:.0f} mins daily\n"
+                            f"• Screen curfew {screen_limit:.1f} hours before bedtime\n"
+                            f"• Weekly mentor or trusted friend check-ins\n"
+                            f"• Stress journaling twice weekly\n"
+                            f"• Progressive muscle relaxation before sleep\n"
+                            f"• Identify and avoid stress triggers when possible\n"
+                            f"• Practice saying 'no' to overwhelming commitments")
+        elif mood == 'Happy':
+            # Maintain positive state
+            emotional_plan = (f"**Emotional Plan - Positive Momentum**\n"
+                            f"• Mindfulness practice {meditation_minutes:.0f} mins daily for awareness\n"
+                            f"• Healthy screen boundary {screen_limit:.1f} hours before sleep\n"
+                            f"• Share positive experiences with friends weekly\n"
+                            f"• Celebrate small wins and achievements\n"
+                            f"• Engage in creative activities or hobbies\n"
+                            f"• Practice acts of kindness toward others\n"
+                            f"• Maintain gratitude practice")
+        else:  # Neutral
+            # Balanced emotional wellness
+            emotional_plan = (f"**Emotional Plan - Balanced Wellness**\n"
+                            f"• Regular meditation or mindfulness {meditation_minutes:.0f} mins daily\n"
+                            f"• Digital detox {screen_limit:.1f} hours before bed\n"
+                            f"• Weekly reflection sessions with mentor or journal\n"
+                            f"• Social connections 2-3 times per week\n"
+                            f"• Explore new interests or learning opportunities\n"
+                            f"• Practice emotional awareness throughout day\n"
+                            f"• Maintain work-life balance boundaries")
         
         return {
             'study_plan': study_plan,
@@ -334,7 +431,9 @@ class EduBoostHealthModel:
             }
             
             # Generate personalized plans
-            personalized_plans = self._generate_personalized_plans(stress_level, predictions_dict)
+            personalized_plans = self._generate_personalized_plans(
+                mood, stress_level, procrastination_level, sleep_hours, predictions_dict
+            )
             
             # Calculate confidence
             confidence = self._calculate_confidence(features_scaled)

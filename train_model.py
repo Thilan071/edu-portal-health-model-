@@ -16,11 +16,84 @@ import joblib
 import os
 
 
+def generate_synthetic_dataset():
+    """Generate a synthetic dataset for demonstration when real data is not available."""
+    print("🔄 Generating 10,000 synthetic health records...")
+    
+    np.random.seed(42)
+    n_samples = 10000
+    
+    # Generate input features
+    moods = ['Happy', 'Neutral', 'Stressed', 'Sad']
+    mood_weights = [0.25, 0.45, 0.25, 0.05]  # More neutral, some stressed, few sad
+    
+    data = {
+        'Mood': np.random.choice(moods, n_samples, p=mood_weights),
+        'Stress_Level': np.random.randint(1, 6, n_samples),
+        'Procrastination_Level': np.random.randint(1, 6, n_samples),
+        'Current_Sleep_Hours': np.random.normal(7.0, 1.5, n_samples).clip(4, 12)
+    }
+    
+    # Generate realistic target variables based on inputs
+    targets = []
+    for i in range(n_samples):
+        mood = data['Mood'][i]
+        stress = data['Stress_Level'][i]
+        proc = data['Procrastination_Level'][i]
+        sleep = data['Current_Sleep_Hours'][i]
+        
+        # Study hours: inversely related to stress and procrastination
+        study_base = 25 - (stress * 2) - (proc * 1.5)
+        study_hours = max(12, min(30, study_base + np.random.normal(0, 2)))
+        
+        # Exercise: higher for stressed people, moderate for others
+        exercise_base = 30 + (stress * 5) + (3 if mood == 'Stressed' else 0)
+        exercise_mins = max(20, min(60, exercise_base + np.random.normal(0, 5)))
+        
+        # Sleep recommendation: higher if current sleep is low
+        sleep_rec = 8.0 + (0.5 if sleep < 6.5 else 0) + (stress * 0.1)
+        sleep_rec = max(6.5, min(9.5, sleep_rec + np.random.normal(0, 0.3)))
+        
+        # Water: higher for stressed, lower for sad
+        water_base = 2.7 + (stress * 0.15) - (0.3 if mood == 'Sad' else 0)
+        water = max(1.5, min(4.0, water_base + np.random.normal(0, 0.2)))
+        
+        # Meditation: much higher for stressed/sad
+        med_base = 15 + (stress * 4) + (10 if mood in ['Stressed', 'Sad'] else 0)
+        meditation = max(5, min(40, med_base + np.random.normal(0, 3)))
+        
+        # Screen limit: higher for stressed (need more wind-down time)
+        screen_base = 2.0 + (stress * 0.4)
+        screen = max(0.5, min(4.0, screen_base + np.random.normal(0, 0.3)))
+        
+        targets.append([study_hours, exercise_mins, sleep_rec, water, meditation, screen])
+    
+    # Create target DataFrame
+    target_df = pd.DataFrame(targets, columns=[
+        'Recommended_Study_Hours', 'Exercise_Minutes_Daily', 'Recommended_Sleep_Hours',
+        'Water_Intake_Liters', 'Meditation_Minutes_Daily', 'Screen_Time_Limit_Hours'
+    ])
+    
+    # Combine input and target data
+    input_df = pd.DataFrame(data)
+    full_df = pd.concat([input_df, target_df], axis=1)
+    
+    print(f"✓ Generated {n_samples} synthetic records")
+    return full_df
+
+
 def load_and_preprocess_data(data_path):
     """Load and preprocess the health dataset."""
     print("📊 Loading dataset...")
-    df = pd.read_csv(data_path)
-    print(f"✓ Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+    
+    # Check if dataset exists
+    if not os.path.exists(data_path):
+        print(f"⚠️  Dataset not found at {data_path}")
+        print("📋 Generating synthetic dataset for demonstration...")
+        df = generate_synthetic_dataset()
+    else:
+        df = pd.read_csv(data_path)
+        print(f"✓ Dataset loaded: {df.shape[0]} rows, {df.shape[1]} columns")
     
     # Display basic info about the dataset
     print(f"\n📋 Dataset Overview:")
